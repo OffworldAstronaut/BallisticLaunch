@@ -14,17 +14,35 @@ class Simulation:
             step (float): step size of each motion "snapshot" - smaller numbers mean sharper simulations
         """
         self.initial_velocity = v0
+        self.y_initial_velocity = self.initial_velocity * np.sin(theta)
+        self.x_initial_velocity = self.initial_velocity * np.cos(theta)
+
         self.launch_angle = theta
         self.grav_acc = g 
+
         self.launch_coordx = launch_coord[0]
         self.launch_coordy = launch_coord[1]
         self.step = step
         
     def set_v0(self, v0: float): 
         self.initial_velocity = v0
+        self.set_vx0(v0 * np.cos(self.get_theta()))
+        self.set_vy0(v0 * np.sin(self.get_theta()))
 
     def get_v0(self) -> float:
         return self.initial_velocity
+    
+    def set_vy0(self, vy0: float): 
+        self.y_initial_velocity = vy0
+
+    def get_vy0(self) -> float: 
+        return self.y_initial_velocity
+    
+    def set_vx0(self, vx0: float): 
+        self.x_initial_velocity = vx0
+
+    def get_vx0(self) -> float: 
+        return self.x_initial_velocity
 
     def set_theta(self, theta: float): 
         self.launch_angle = theta
@@ -51,21 +69,41 @@ class Simulation:
     def get_step(self) -> float:
         return self.step 
 
-    def launch(self, exec_time: bool) -> Tuple:
-        """Executes the launch of the created projectile 
+    def launch(self, exec_time: bool) -> List[Tuple]:
+        """Launches the projectile
+
+        Args:
+            exec_time (bool): Defines if the user wants to receive the total execution time (in seconds) or not
+        """
+        t = 0
+        t_max = self.get_time_flight() 
+
+        h = self.get_step()
+        
+        positions_array = []
+    
+        while t < t_max: 
+            transf_matrix = np.array([[self.get_vx0(), 0, self.get_launch_coord()[0]],
+                                  [self.get_vy0(), -1 * 0.5 * self.get_g(), self.get_launch_coord()[1]]
+                                  ])
+        
+            time_matrix = np.array([[t], [t ** 2.0], [1]])
+            
+            positions_matrix = np.dot(transf_matrix, time_matrix)
+            position = (float(positions_matrix[0]), float(positions_matrix[1]))
+            positions_array.append(position)
+            t = t + h
+            
+        return positions_array
+
+    def get_time_flight(self) -> float:
+        """Returns the time of flight of the projectile, by analytical means
 
         Returns:
-            Tuple: Data of the launch (coordinates, associated time, velocities) and the method's running time, if asked
+            float: time of flight of the projectile, with four degrees of precision
         """
-        ...
-
-    def get_flight_time(self) -> float:
-        """Returns the flight time of the projectile, by analytical means
-
-        Returns:
-            float: flight time of the projectile, with four degrees of precision
-        """
-        ...
+        
+        return (2.0 * (self.get_v0() * np.sin(self.get_theta()))) / self.get_g()
 
     def get_max_height(self) -> float:
         """Returns the max height of the projectile, by analytical means
@@ -73,7 +111,8 @@ class Simulation:
         Returns:
             float: max height of the projectile, with four degrees of precision_description_
         """
-        ...
+
+        return (self.get_vy0() ** 2.0) / (2 * self.get_g())
 
     def get_range(self) -> float:
         """Returns the max range of the projectile, by analytical means
@@ -81,4 +120,5 @@ class Simulation:
         Returns:
             float: max range of the projectile, with four degrees of precision
         """
-        ... 
+        
+        return (self.get_v0() ** 2.0 * np.sin(2.0 * self.get_theta())) / self.get_g()
