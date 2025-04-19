@@ -3,6 +3,9 @@ from typing import Tuple, List
 import numpy as np
 
 class Simulation: 
+    
+    # Constructor
+    
     def __init__(self, v0: float, theta: float, g: float, launch_coord: Tuple[float, float], step: float):
         """Initializes the simulation with all the necessary parameters
 
@@ -24,57 +27,16 @@ class Simulation:
         self.launch_coordy = launch_coord[1]
         self.step = step
         
-    def set_v0(self, v0: float): 
-        self.initial_velocity = v0
-        self.set_vx0(v0 * np.cos(self.get_theta()))
-        self.set_vy0(v0 * np.sin(self.get_theta()))
-
-    def get_v0(self) -> float:
-        return self.initial_velocity
+    # Important methods
     
-    def set_vy0(self, vy0: float): 
-        self.y_initial_velocity = vy0
-
-    def get_vy0(self) -> float: 
-        return self.y_initial_velocity
-    
-    def set_vx0(self, vx0: float): 
-        self.x_initial_velocity = vx0
-
-    def get_vx0(self) -> float: 
-        return self.x_initial_velocity
-
-    def set_theta(self, theta: float): 
-        self.launch_angle = theta
-
-    def get_theta(self) -> float:
-        return self.launch_angle
-
-    def set_g(self, g: float): 
-        self.grav_acc = g
-
-    def get_g(self) -> float:
-        return self.grav_acc
-
-    def set_launch_coord(self, launch_coord: Tuple[float, float]):
-        self.launch_coordx = launch_coord[0]
-        self.launch_coordy = launch_coord[1]
-
-    def get_launch_coord(self) -> Tuple[float, float]:
-        return (self.launch_coordx, self.launch_coordy)
-
-    def set_step(self, step: float):
-        self.step = step
-
-    def get_step(self) -> float:
-        return self.step 
-
-    def launch(self, exec_time: bool) -> List[Tuple]:
+    def launch(self) -> List[Tuple]:
         """Launches the projectile
-
-        Args:
-            exec_time (bool): Defines if the user wants to receive the total execution time (in seconds) or not
+        
+        Returns:
+            Tuple containing the positions of the trajectory of the projectile
         """
+        before = time() 
+        
         t = 0
         t_max = self.get_time_flight() 
 
@@ -94,6 +56,10 @@ class Simulation:
             positions_array.append(position)
             t = t + h
             
+        
+        time_past = time() - before
+        print(f"Simulation concluded with exec time: {time_past} seconds")
+        
         return positions_array
 
     def get_time_flight(self) -> float:
@@ -122,3 +88,58 @@ class Simulation:
         """
         
         return (self.get_v0() ** 2.0 * np.sin(2.0 * self.get_theta())) / self.get_g()
+    
+    def generate_plot(self, data: List[Tuple]) -> None:
+        """Generates a plot for the projectile's trajectory
+
+        Args:
+            data (List[Tuple]): Data of all the cartesian points of the projectile's trajectory (x, y)
+        """
+        ...
+    
+    # Getters and Setters
+    
+    def set_v0(self, v0: float) -> None: 
+        self.initial_velocity = v0
+        self.set_vx0(v0 * np.cos(self.get_theta()))
+        self.set_vy0(v0 * np.sin(self.get_theta()))
+
+    def get_v0(self) -> float:
+        return self.initial_velocity
+    
+    def set_vy0(self, vy0: float) -> None: 
+        self.y_initial_velocity = vy0
+
+    def get_vy0(self) -> float: 
+        return self.y_initial_velocity
+    
+    def set_vx0(self, vx0: float) -> None: 
+        self.x_initial_velocity = vx0
+
+    def get_vx0(self) -> float: 
+        return self.x_initial_velocity
+
+    def set_theta(self, theta: float) -> None: 
+        self.launch_angle = theta
+
+    def get_theta(self) -> float:
+        return self.launch_angle
+
+    def set_g(self, g: float): 
+        self.grav_acc = g
+
+    def get_g(self) -> float:
+        return self.grav_acc
+
+    def set_launch_coord(self, launch_coord: Tuple[float, float]):
+        self.launch_coordx = launch_coord[0]
+        self.launch_coordy = launch_coord[1]
+
+    def get_launch_coord(self) -> Tuple[float, float]:
+        return (self.launch_coordx, self.launch_coordy)
+
+    def set_step(self, step: float):
+        self.step = step
+
+    def get_step(self) -> float:
+        return self.step
