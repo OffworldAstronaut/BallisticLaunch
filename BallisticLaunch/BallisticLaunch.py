@@ -1,6 +1,10 @@
 from time import time
-from typing import Tuple, List
+from typing import Tuple, List, LiteralString
 import numpy as np
+from matplotlib import axis, pyplot as plt
+
+class FlightTimeException(Exception): 
+    pass
 
 class Simulation: 
     
@@ -17,8 +21,8 @@ class Simulation:
             step (float): step size of each motion "snapshot" - smaller numbers mean sharper simulations
         """
         self.initial_velocity = v0
-        self.y_initial_velocity = self.initial_velocity * np.sin(theta)
-        self.x_initial_velocity = self.initial_velocity * np.cos(theta)
+        self.y_initial_velocity = self.initial_velocity * np.sin(np.deg2rad(theta))
+        self.x_initial_velocity = self.initial_velocity * np.cos(np.deg2rad(theta))
 
         self.launch_angle = theta
         self.grav_acc = g 
@@ -29,7 +33,7 @@ class Simulation:
         
     # Important methods
     
-    def launch(self) -> List[Tuple]:
+    def launch(self) -> List[Tuple] | LiteralString:
         """Launches the projectile
         
         Returns:
@@ -44,23 +48,29 @@ class Simulation:
         
         positions_array = []
     
-        while t < t_max: 
-            transf_matrix = np.array([[self.get_vx0(), 0, self.get_launch_coord()[0]],
-                                  [self.get_vy0(), -1 * 0.5 * self.get_g(), self.get_launch_coord()[1]]
-                                  ])
+        if t_max <= 0:
+            raise FlightTimeException(f"Warning! Time of flight ({self.get_time_flight()}) is insuficient. Maybe try to increase speed or launch angle?")
         
-            time_matrix = np.array([[t], [t ** 2.0], [1]])
+        else:
+            while t < t_max: 
+                transf_matrix = np.array([[self.get_vx0(), 0, self.get_launch_coord()[0]],
+                                        [self.get_vy0(), -1 * 0.5 * self.get_g(), self.get_launch_coord()[1]]
+                                        ])
             
-            positions_matrix = np.dot(transf_matrix, time_matrix)
-            position = (float(positions_matrix[0]), float(positions_matrix[1]))
-            positions_array.append(position)
-            t = t + h
+                time_matrix = np.array([[t], [t ** 2.0], [1]])
+                
+                positions_matrix = np.dot(transf_matrix, time_matrix)
+                position = (float(positions_matrix[0]), float(positions_matrix[1]))
+                positions_array.append(position)
+                t = t + h
+                
             
-        
-        time_past = time() - before
-        print(f"Simulation concluded with exec time: {time_past} seconds")
-        
-        return positions_array
+            time_past = time() - before
+            print(f"Simulation concluded with exec time: {time_past} seconds")
+            
+            self.trajectory_array = positions_array
+            
+            return positions_array
 
     def get_time_flight(self) -> float:
         """Returns the time of flight of the projectile, by analytical means
@@ -69,7 +79,7 @@ class Simulation:
             float: time of flight of the projectile, with four degrees of precision
         """
         
-        return (2.0 * (self.get_v0() * np.sin(self.get_theta()))) / self.get_g()
+        return 2.0 * self.get_vy0() / self.get_g()
 
     def get_max_height(self) -> float:
         """Returns the max height of the projectile, by analytical means
@@ -87,15 +97,23 @@ class Simulation:
             float: max range of the projectile, with four degrees of precision
         """
         
-        return (self.get_v0() ** 2.0 * np.sin(2.0 * self.get_theta())) / self.get_g()
+        return self.get_v0() ** 2.0 * np.sin(np.deg2rad(2.0 * self.get_theta())) / self.get_g()
     
-    def generate_plot(self, data: List[Tuple]) -> None:
-        """Generates a plot for the projectile's trajectory
-
-        Args:
-            data (List[Tuple]): Data of all the cartesian points of the projectile's trajectory (x, y)
-        """
-        ...
+    def generate_plot(self) -> None:
+        """Generates a plot for the projectile's trajectory. The file is identified by timestamp."""
+        
+        x_values = [coords[0] for coords in self.trajectory_array]
+        y_values = [coords[1] for coords in self.trajectory_array]
+    
+        plt.scatter(x_values, y_values, s=0.5)
+        
+        plt.xlim(0, self.get_range() + 0.1)
+        plt.ylim(0, self.get_max_height() + 0.2)
+        
+        plt.savefig(f"projectile_t={time()}.png", dpi=1500)
+        
+    
+    # TODO: generate animation method
     
     # Getters and Setters
     
