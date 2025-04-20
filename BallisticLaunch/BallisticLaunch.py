@@ -1,7 +1,8 @@
 from time import time
 from typing import Tuple, List, LiteralString
 import numpy as np
-from matplotlib import axis, pyplot as plt
+from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 
 class FlightTimeException(Exception): 
     pass
@@ -111,9 +112,45 @@ class Simulation:
         plt.ylim(0, self.get_max_height() + 0.2)
         
         plt.savefig(f"projectile_t={time()}.png", dpi=1500)
-        
     
-    # TODO: generate animation method
+    def generate_animation(self) -> None:
+        """Generates an animation of the projectile's trajectory."""
+
+        # Parses the data for the animation        
+        x_values = [coords[0] for coords in self.trajectory_array]
+        y_values = [coords[1] for coords in self.trajectory_array]
+        total_frames = len(self.trajectory_array)
+
+
+        # Builds the plot structure for the animation 
+        fig, ax = plt.subplots()
+        scat = ax.scatter([], [], c='blue')
+
+        ax.set_xlim(min(x_values) - 1, max(x_values) + 1)
+        ax.set_ylim(min(y_values) - 1, max(y_values) + 1)
+        ax.set_xlabel('Distance')
+        ax.set_ylabel('Height')
+        ax.set_title(f'Trajectory Animation (theta={self.get_theta()}, v={self.get_v0()}), g={self.get_g()}')
+
+        # Callback for initializing the animation frame
+        def init():
+            scat.set_offsets(np.empty((0, 2)))
+            return scat,
+
+        # Callback for animation updating 
+        def update(frame):
+            current_x = x_values[:frame+1]
+            current_y = y_values[:frame+1]
+            scat.set_offsets(list(zip(current_x, current_y)))
+            return scat,
+
+        ani = animation.FuncAnimation(
+            fig, update, frames=total_frames, init_func=init,
+            interval=10, blit=True, repeat=False
+            )
+
+        # Saves a GIF of the animation 
+        ani.save(f"ballistic_motion.gif", fps=24)
     
     # Getters and Setters
     
