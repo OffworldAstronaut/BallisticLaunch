@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "BallisticLaunch"
+version = "0.1.0"
+description = "Simple simulation kit for ballistic launches."
+authors = [{ name = "Rafael Amorim", email = "rafael.science.amorim@gmaill.com" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = ["numpy", "matplotlib", "typing"]
+
+[project.urls]
+"Homepage" = "https://github.com/OffworldAstronaut/BallisticLaunch"
